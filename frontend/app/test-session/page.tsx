@@ -1,8 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
+import Api from "@/lib/Api";
 
 interface Question {
   questionId: string;
@@ -21,15 +28,17 @@ interface TestSession {
 
 export default function TestSessionPage() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('id');
-  
+  const sessionId = searchParams.get("id");
+
   const [session, setSession] = useState<TestSession | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [responses, setResponses] = useState<Map<string, { selectedIndex: number; timeSec: number }>>(new Map());
+  const [responses, setResponses] = useState<
+    Map<string, { selectedIndex: number; timeSec: number }>
+  >(new Map());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [timeSpent, setTimeSpent] = useState<Map<string, number>>(new Map());
-  const [startTime] = useState<Map<string, number>>(new Map());
+  const [startTime, setStartTime] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     if (sessionId) {
@@ -51,10 +60,11 @@ export default function TestSessionPage() {
     // Update time spent for current question
     const interval = setInterval(() => {
       if (session && currentQuestionIndex < session.questionItems.length) {
-        const questionId = session.questionItems[currentQuestionIndex].questionId;
+        const questionId =
+          session.questionItems[currentQuestionIndex].questionId;
         const start = startTime.get(questionId) || Date.now();
         const elapsed = Math.floor((Date.now() - start) / 1000);
-        setTimeSpent(prev => new Map(prev).set(questionId, elapsed));
+        setTimeSpent((prev) => new Map(prev).set(questionId, elapsed));
       }
     }, 1000);
 
@@ -64,16 +74,12 @@ export default function TestSessionPage() {
   const fetchSession = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3001/api/sessions/${sessionId}`, {
-        headers: {
-          'Authorization': 'Bearer dummy-token' // Replace with real Clerk token
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
+      const response = await Api.getSession(sessionId || "");
+
+      if (response) {
+        const data = response;
         setSession(data.session);
-        
+
         // Initialize time tracking for all questions
         const newStartTime = new Map();
         const newTimeSpent = new Map();
@@ -85,7 +91,7 @@ export default function TestSessionPage() {
         setTimeSpent(newTimeSpent);
       }
     } catch (error) {
-      console.error('Error fetching session:', error);
+      console.error("Error fetching session:", error);
     } finally {
       setLoading(false);
     }
@@ -95,22 +101,24 @@ export default function TestSessionPage() {
     const currentTime = Date.now();
     const start = startTime.get(questionId) || currentTime;
     const timeSec = Math.floor((currentTime - start) / 1000);
-    
-    setResponses(prev => new Map(prev).set(questionId, {
-      selectedIndex: optionIndex,
-      timeSec
-    }));
+
+    setResponses((prev) =>
+      new Map(prev).set(questionId, {
+        selectedIndex: optionIndex,
+        timeSec,
+      })
+    );
   };
 
   const goToNextQuestion = () => {
     if (currentQuestionIndex < (session?.questionItems.length || 0) - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
   const goToPreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
@@ -123,32 +131,33 @@ export default function TestSessionPage() {
 
     try {
       setSubmitting(true);
-      
-      // Convert responses map to array format
-      const responsesArray = Array.from(responses.entries()).map(([questionId, response]) => ({
-        questionId,
-        selectedIndex: response.selectedIndex,
-        timeSec: response.timeSec
-      }));
 
-      const response = await fetch(`http://localhost:3001/api/sessions/${session.id}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer dummy-token' // Replace with real Clerk token
-        },
-        body: JSON.stringify({ responses: responsesArray })
+      // Convert responses map to array format
+      const responsesArray = Array.from(responses.entries()).map(
+        ([questionId, response]) => ({
+          questionId,
+          selectedIndex: response.selectedIndex,
+          timeSec: response.timeSec,
+        })
+      );
+
+      const response = await Api.submitSession(session.id, {
+        responses: responsesArray,
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Session submitted:', data);
-        alert('Session completed! Your score: ' + Math.round((data.session.score || 0) * 100) + '%');
+        console.log("Session submitted:", data);
+        alert(
+          "Session completed! Your score: " +
+            Math.round((data.session.score || 0) * 100) +
+            "%"
+        );
         // Redirect to results or dashboard
       }
     } catch (error) {
-      console.error('Error submitting session:', error);
-      alert('Failed to submit session');
+      console.error("Error submitting session:", error);
+      alert("Failed to submit session");
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +197,9 @@ export default function TestSessionPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">LevelUp Test Session</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                LevelUp Test Session
+              </h1>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Clock className="w-4 h-4" />
                 <span>Level {session.levelNumber}</span>
@@ -240,8 +251,8 @@ export default function TestSessionPage() {
                     key={index}
                     className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
                       currentResponse?.selectedIndex === index
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <input
@@ -249,14 +260,18 @@ export default function TestSessionPage() {
                       name={`question-${currentQuestion.questionId}`}
                       value={index}
                       checked={currentResponse?.selectedIndex === index}
-                      onChange={() => handleOptionSelect(currentQuestion.questionId, index)}
+                      onChange={() =>
+                        handleOptionSelect(currentQuestion.questionId, index)
+                      }
                       className="sr-only"
                     />
-                    <div className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
-                      currentResponse?.selectedIndex === index
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-gray-300'
-                    }`}>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
+                        currentResponse?.selectedIndex === index
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-gray-300"
+                      }`}
+                    >
                       {currentResponse?.selectedIndex === index && (
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       )}
@@ -282,7 +297,7 @@ export default function TestSessionPage() {
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   )}
                   <span className="text-sm text-gray-600">
-                    {currentResponse ? 'Answered' : 'Not answered'}
+                    {currentResponse ? "Answered" : "Not answered"}
                   </span>
                 </div>
 
@@ -303,7 +318,9 @@ export default function TestSessionPage() {
             <div className="bg-white rounded-xl shadow-sm border p-6">
               {/* Progress */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Progress</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Progress
+                </h3>
                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -317,23 +334,25 @@ export default function TestSessionPage() {
 
               {/* Question Navigation */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Questions</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Questions
+                </h3>
                 <div className="grid grid-cols-5 gap-2">
                   {session.questionItems.map((_, index) => {
                     const questionId = session.questionItems[index].questionId;
                     const isAnswered = responses.has(questionId);
                     const isCurrent = index === currentQuestionIndex;
-                    
+
                     return (
                       <button
                         key={index}
                         onClick={() => goToQuestion(index)}
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 ${
                           isCurrent
-                            ? 'bg-blue-600 text-white'
+                            ? "bg-blue-600 text-white"
                             : isAnswered
-                            ? 'bg-green-100 text-green-800 border border-green-300'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? "bg-green-100 text-green-800 border border-green-300"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                       >
                         {index + 1}
@@ -349,7 +368,7 @@ export default function TestSessionPage() {
                 disabled={submitting || answeredQuestions < totalQuestions}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                {submitting ? 'Submitting...' : 'Submit Session'}
+                {submitting ? "Submitting..." : "Submit Session"}
               </button>
 
               {answeredQuestions < totalQuestions && (
