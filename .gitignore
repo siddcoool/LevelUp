@@ -12,14 +12,15 @@
 !.yarn/versions
 
 # testing
-/coverage
+/frontend/coverage
 
 # next.js
-/.next/
-/out/
+/frontend/.next/
+/frontend/out/
 
 # production
-/build
+/frontend/build
+/backend/build
 
 # misc
 .DS_Store
@@ -32,7 +33,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+/frontend/.env*
+/backend/.env*
 
 # vercel
 .vercel
@@ -40,3 +42,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/frontend/next-env.d.ts
+/backend/next-env.d.ts

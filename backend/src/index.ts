@@ -5,17 +5,17 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { authMiddleware } from './middleware/authMiddleware';
+import { sessionRoutes } from './routes/sessionRoutes';
+import { taxonomyRoutes } from './routes/taxonomyRoutes';
+import { adminRoutes } from './routes/adminRoutes';
 
-import { sessionRoutes } from './routes/sessionRoutes.js';
-import { taxonomyRoutes } from './routes/taxonomyRoutes.js';
-import { adminRoutes } from './routes/adminRoutes.js';
-import { authMiddleware } from './middleware/authMiddleware.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/levelup';
 
 // Security middleware
@@ -31,7 +31,7 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
-app.use('/api/', limiter);
+app.use('/api', limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

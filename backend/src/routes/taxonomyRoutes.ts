@@ -1,5 +1,6 @@
-import { Router, Request, Response } from 'express';
-import { Branch, Subject, Topic } from '../models/index.js';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import { Branch, Subject, Topic } from '../models';
 
 const router = Router();
 

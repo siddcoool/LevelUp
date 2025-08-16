@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express';
-import { AnalyticsService } from '../services/AnalyticsService.js';
-import { adminMiddleware } from '../middleware/authMiddleware.js';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import { AnalyticsService } from '../services/AnalyticsService';
+import { adminMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 

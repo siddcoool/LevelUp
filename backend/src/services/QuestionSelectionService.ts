@@ -1,11 +1,11 @@
 import { Types } from 'mongoose';
-import { Question, StudentProgress } from '../models/index.js';
+import { Question } from '../models/index';
 import { 
   QuestionSelectionParams, 
   CoverageBalanceParams, 
   Mode, 
   Question as QuestionInterface 
-} from '../types/index.js';
+} from '../types/index';
 
 export class QuestionSelectionService {
   private static readonly QUESTIONS_PER_LEVEL = 30;

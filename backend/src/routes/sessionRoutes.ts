@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express';
-import { SessionService } from '../services/SessionService.js';
-import { CreateSessionRequest, SubmitSessionRequest } from '../types/index.js';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import { SessionService } from '../services/SessionService';
+import type { CreateSessionRequest, SubmitSessionRequest, TestSession } from '../types';
 
 const router = Router();
 
@@ -194,49 +195,49 @@ router.get('/:id', async (req: Request, res: Response) => {
  * GET /api/sessions
  * Get user's session history
  */
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    const { clerkUserId } = req;
-    if (!clerkUserId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
+// router.get('/', async (req: Request, res: Response) => {
+//   try {
+//     const { clerkUserId } = req;
+//     if (!clerkUserId) {
+//       return res.status(401).json({ error: 'Authentication required' });
+//     }
 
-    const { branchId, limit = '10', offset = '0' } = req.query;
+//     const { branchId, limit = '10', offset = '0' } = req.query;
     
-    if (!branchId) {
-      return res.status(400).json({ error: 'branchId query parameter is required' });
-    }
+//     if (!branchId) {
+//       return res.status(400).json({ error: 'branchId query parameter is required' });
+//     }
 
-    const sessions = await SessionService.getSessions({
-      branchId: branchId as string,
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string)
-    });
+//     const sessions = await SessionService.getSessions({
+//       branchId: branchId as string,
+//       limit: parseInt(limit as string),
+//       offset: parseInt(offset as string)
+//     });
 
-    res.json({
-      sessions: sessions.map(session => ({
-        id: session._id,
-        mode: session.mode,
-        levelNumber: session.levelNumber,
-        score: session.score,
-        completed: session.completed,
-        startedAt: session.startedAt,
-        completedAt: session.completedAt,
-        questionCount: session.questionItems.length
-      })),
-      pagination: {
-        total: sessions.length,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
-      }
-    });
-  } catch (error: any) {
-    console.error('Get sessions error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get sessions',
-      details: error.message 
-    });
-  }
-});
+//     res.json({
+//       sessions: sessions.map((session: TestSession) => ({
+//         id: session._id,
+//         mode: session.mode,
+//         levelNumber: session.levelNumber,
+//         score: session.score,
+//         completed: session.completed,
+//         startedAt: session.startedAt,
+//         completedAt: session.completedAt,
+//         questionCount: session.questionItems.length
+//       })),
+//       pagination: {
+//         total: sessions.length,
+//         limit: parseInt(limit as string),
+//         offset: parseInt(offset as string)
+//       }
+//     });
+//   } catch (error: any) {
+//     console.error('Get sessions error:', error);
+//     res.status(500).json({ 
+//       error: 'Failed to get sessions',
+//       details: error.message 
+//     });
+//   }
+// });
 
 export { router as sessionRoutes };

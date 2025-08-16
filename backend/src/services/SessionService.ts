@@ -4,8 +4,8 @@ import {
   StudentProgress, 
   Question, 
   User 
-} from '../models/index.js';
-import { QuestionSelectionService } from './QuestionSelectionService.js';
+} from '../models';
+import { QuestionSelectionService } from './QuestionSelectionService';
 import { 
   CreateSessionRequest, 
   SubmitSessionRequest, 
@@ -13,7 +13,7 @@ import {
   StudentProgress as StudentProgressInterface,
   Mode,
   ScopeType
-} from '../types/index.js';
+} from '../types';
 
 export class SessionService {
   private static readonly QUESTIONS_PER_LEVEL = 30;

@@ -5,7 +5,7 @@ import {
   DailyMetrics, 
   Question,
   Branch 
-} from '../models/index.js';
+} from '../models';
 
 export class AnalyticsService {
   /**
