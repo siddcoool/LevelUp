@@ -324,4 +324,26 @@ export class SessionService {
   static async getStudentProgress(userId: Types.ObjectId, branchId: Types.ObjectId) {
     return await StudentProgress.find({ userId, branchId }).sort({ scopeType: 1, createdAt: 1 });
   }
+
+  /**
+   * Get sessions for a specific branch with pagination
+   */
+  static async getSessions(params: {
+    branchId: string;
+    limit: number;
+    offset: number;
+  }): Promise<TestSessionInterface[]> {
+    const { branchId, limit, offset } = params;
+    
+    const sessions = await TestSession.find({ 
+      branchId: new Types.ObjectId(branchId) 
+    })
+    .sort({ startedAt: -1 }) // Most recent first
+    .skip(offset)
+    .limit(limit)
+    .populate('userId', 'name email') // Include user details
+    .lean();
+
+    return sessions;
+  }
 }

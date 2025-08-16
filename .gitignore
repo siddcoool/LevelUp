@@ -13,6 +13,8 @@
 
 # testing
 /frontend/coverage
+/frontend/.next
+/backend/.next
 
 # next.js
 /frontend/.next/
@@ -44,3 +46,5 @@ yarn-error.log*
 next-env.d.ts
 /frontend/next-env.d.ts
 /backend/next-env.d.ts
+temp_auto_push.bat
+temp_interactive_push.bat

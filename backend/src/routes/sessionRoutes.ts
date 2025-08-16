@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { SessionService } from '../services/SessionService';
 import type { CreateSessionRequest, SubmitSessionRequest, TestSession } from '../types';
+import { authMiddleware } from '../middleware/authMiddleware';
+import { getAuth } from '@clerk/express';
 
 const router = Router();
 
@@ -9,12 +11,11 @@ const router = Router();
  * POST /api/sessions
  * Create a new test session
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { clerkUserId } = req;
-    if (!clerkUserId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
+  const auth = getAuth(req as any);
+  const clerkUserId = auth.userId;
+  if (!clerkUserId) return res.status(401).json({ error: 'Authentication required' });
 
     const request: CreateSessionRequest = req.body;
     
@@ -76,12 +77,11 @@ router.post('/', async (req: Request, res: Response) => {
  * POST /api/sessions/:id/submit
  * Submit a completed test session
  */
-router.post('/:id/submit', async (req: Request, res: Response) => {
+router.post('/:id/submit', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { clerkUserId } = req;
-    if (!clerkUserId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
+  const auth = getAuth(req as any);
+  const clerkUserId = auth.userId;
+  if (!clerkUserId) return res.status(401).json({ error: 'Authentication required' });
 
     const { id } = req.params;
     const request: SubmitSessionRequest = req.body;
@@ -144,13 +144,11 @@ router.post('/:id/submit', async (req: Request, res: Response) => {
  * GET /api/sessions/:id
  * Get a test session
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { clerkUserId } = req;
-    if (!clerkUserId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
+  const auth = getAuth(req as any);
+  const clerkUserId = auth.userId;
+  if (!clerkUserId) return res.status(401).json({ error: 'Authentication required' });
     const { id } = req.params;
     const includeAnswers = req.query.answers === 'true';
     
@@ -195,49 +193,47 @@ router.get('/:id', async (req: Request, res: Response) => {
  * GET /api/sessions
  * Get user's session history
  */
-// router.get('/', async (req: Request, res: Response) => {
-//   try {
-//     const { clerkUserId } = req;
-//     if (!clerkUserId) {
-//       return res.status(401).json({ error: 'Authentication required' });
-//     }
-
-//     const { branchId, limit = '10', offset = '0' } = req.query;
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
+  try {
+  const auth = getAuth(req as any);
+  const clerkUserId = auth.userId;
+  if (!clerkUserId) return res.status(401).json({ error: 'Authentication required' });
+    const { branchId, limit = '10', offset = '0' } = req.query;
     
-//     if (!branchId) {
-//       return res.status(400).json({ error: 'branchId query parameter is required' });
-//     }
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId query parameter is required' });
+    }
 
-//     const sessions = await SessionService.getSessions({
-//       branchId: branchId as string,
-//       limit: parseInt(limit as string),
-//       offset: parseInt(offset as string)
-//     });
+    const sessions = await SessionService.getSessions({
+      branchId: branchId as string,
+      limit: parseInt(limit as string),
+      offset: parseInt(offset as string)
+    });
 
-//     res.json({
-//       sessions: sessions.map((session: TestSession) => ({
-//         id: session._id,
-//         mode: session.mode,
-//         levelNumber: session.levelNumber,
-//         score: session.score,
-//         completed: session.completed,
-//         startedAt: session.startedAt,
-//         completedAt: session.completedAt,
-//         questionCount: session.questionItems.length
-//       })),
-//       pagination: {
-//         total: sessions.length,
-//         limit: parseInt(limit as string),
-//         offset: parseInt(offset as string)
-//       }
-//     });
-//   } catch (error: any) {
-//     console.error('Get sessions error:', error);
-//     res.status(500).json({ 
-//       error: 'Failed to get sessions',
-//       details: error.message 
-//     });
-//   }
-// });
+    res.json({
+      sessions: sessions.map((session: TestSession) => ({
+        id: session._id,
+        mode: session.mode,
+        levelNumber: session.levelNumber,
+        score: session.score,
+        completed: session.completed,
+        startedAt: session.startedAt,
+        completedAt: session.completedAt,
+        questionCount: session.questionItems.length
+      })),
+      pagination: {
+        total: sessions.length,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      }
+    });
+  } catch (error: any) {
+    console.error('Get sessions error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get sessions',
+      details: error.message 
+    });
+  }
+});
 
 export { router as sessionRoutes };
